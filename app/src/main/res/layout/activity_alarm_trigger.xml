@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#0F172A"
+    android:background="@color/background"
     android:padding="24dp">
 
     <TextView
@@ -14,7 +14,7 @@
         android:text="07:30"
         android:textSize="64sp"
         android:textStyle="bold"
-        android:textColor="#FFFFFF" />
+        android:textColor="@color/white" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -32,6 +32,6 @@
         android:text="STOP ALARM"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:background="#EF4444" />
+        android:textColor="@color/white"
+        android:background="@drawable/btn_danger" />
 </LinearLayout>
