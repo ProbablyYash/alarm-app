@@ -23,3 +23,7 @@ android {
         }
     }
 }
+
+dependencies {
+    // Uses standard Android built-ins; no external libraries needed
+}
