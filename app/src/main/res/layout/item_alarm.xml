@@ -3,39 +3,68 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:background="#1E293B"
-    android:padding="16dp">
+    android:background="@drawable/card_bg"
+    android:padding="20dp"
+    android:gravity="center_vertical">
 
     <LinearLayout
+        android:id="@+id/cardContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/txtTime"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="07:30 AM"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:gravity="baseline"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="07:30"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="#F1F5F9" />
+
+            <TextView
+                android:id="@+id/txtAmPm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" AM"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#38BDF8"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/txtToneTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Default Alarm"
+            android:text="Tone: Radar"
             android:textSize="13sp"
-            android:textColor="#94A3B8" />
+            android:textColor="#94A3B8"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap to edit time &amp; sound"
+            android:textSize="11sp"
+            android:textColor="#475569"
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <Button
         android:id="@+id/btnDelete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Delete"
-        android:textColor="#EF4444"
+        android:text="DELETE"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#F87171"
         android:background="@android:color/transparent" />
 </LinearLayout>
