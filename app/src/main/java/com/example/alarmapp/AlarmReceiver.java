@@ -14,7 +14,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         int alarmId = intent.getIntExtra("ALARM_ID", -1);
         String mode = intent.getStringExtra("MODE");
 
-        // Reschedule or clean up SharedPreferences
         if (alarmId != -1) {
             SharedPreferences sp = context.getSharedPreferences("alarms_db", Context.MODE_PRIVATE);
             String raw = sp.getString("list", "[]");
@@ -28,16 +27,15 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                     if (id == alarmId) {
                         if ("DAILY".equals(mode)) {
-                            // Keep and reschedule for next day
                             AlarmModel m = new AlarmModel(
                                 id, o.getInt("hour"), o.getInt("minute"),
                                 o.optInt("year"), o.optInt("month"), o.optInt("day"),
-                                "DAILY", o.getString("toneUri"), o.getString("toneName")
+                                "DAILY", o.getString("toneUri"), o.getString("toneName"),
+                                o.optString("label", "Alarm"), o.optString("imageUri", "")
                             );
                             AlarmScheduler.schedule(context, m);
                             updatedArr.put(o);
                         }
-                        // If ONCE, it is dropped from the list
                     } else {
                         updatedArr.put(o);
                     }

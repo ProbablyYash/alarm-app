@@ -1,36 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#0A0F1D"
-    android:padding="24dp">
+    android:background="#0A0F1D">
 
-    <TextView
-        android:id="@+id/txtRingingTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="07:30"
-        android:textSize="64sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF" />
+    <!-- Custom Wallpaper Background -->
+    <ImageView
+        android:id="@+id/imgWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ALARM RINGING"
-        android:textColor="#38BDF8"
-        android:textSize="16sp"
-        android:layout_marginBottom="60dp" />
+    <!-- Dark Contrast Overlay -->
+    <View
+        android:id="@+id/vOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#990A0F1D"
+        android:visibility="gone" />
 
-    <Button
-        android:id="@+id/btnDismiss"
-        android:layout_width="220dp"
-        android:layout_height="65dp"
-        android:text="STOP ALARM"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#EF4444" />
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="28dp">
+
+        <TextView
+            android:id="@+id/txtRingingTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="07:30"
+            android:textSize="68sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/txtAlarmLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wake up!"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#38BDF8"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ALARM ACTIVE"
+            android:letterSpacing="0.25"
+            android:textSize="12sp"
+            android:textColor="#94A3B8"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="60dp" />
+
+        <Button
+            android:id="@+id/btnDismiss"
+            android:layout_width="240dp"
+            android:layout_height="64dp"
+            android:text="STOP ALARM"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#EF4444" />
+    </LinearLayout>
+</RelativeLayout>

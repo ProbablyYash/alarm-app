@@ -21,8 +21,14 @@ public class BootReceiver extends BroadcastReceiver {
                         o.getInt("id"),
                         o.getInt("hour"),
                         o.getInt("minute"),
+                        o.optInt("year", 0),
+                        o.optInt("month", 0),
+                        o.optInt("day", 0),
+                        o.optString("mode", "DAILY"),
                         o.getString("toneUri"),
-                        o.getString("toneName")
+                        o.getString("toneName"),
+                        o.optString("label", "Alarm"),
+                        o.optString("imageUri", "")
                     );
                     AlarmScheduler.schedule(context, m);
                 }

@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,12 +40,18 @@ public class MainActivity extends Activity {
     private ListView listView;
     private TextView txtNotice;
     private AlarmAdapter adapter;
+
     private static final int TONE_PICK_REQ = 777;
+    private static final int IMAGE_PICK_REQ = 888;
 
     private int editingIndex = -1;
     private int pendingHour, pendingMinute;
     private int pendingYear, pendingMonth, pendingDay;
     private String pendingMode = "DAILY";
+    private String pendingLabel = "Alarm";
+    private String pendingToneUri = "";
+    private String pendingToneName = "Default Alarm";
+    private String pendingImageUri = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,17 +68,11 @@ public class MainActivity extends Activity {
 
         btnAdd.setOnClickListener(v -> {
             editingIndex = -1;
+            pendingImageUri = "";
             promptScheduleMode();
         });
 
         checkAndRequestAppPermissions();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadAlarms();
-        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     private void promptScheduleMode() {
@@ -108,51 +109,112 @@ public class MainActivity extends Activity {
         new TimePickerDialog(this, (view, hourOfDay, minute) -> {
             pendingHour = hourOfDay;
             pendingMinute = minute;
-
-            Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
-            intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
-            startActivityForResult(intent, TONE_PICK_REQ);
+            promptNoteDialog();
         }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false).show();
+    }
+
+    private void promptNoteDialog() {
+        EditText input = new EditText(this);
+        input.setHint("e.g. Wake up, Meeting, Gym");
+        if (editingIndex >= 0 && editingIndex < alarms.size()) {
+            input.setText(alarms.get(editingIndex).label);
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Add Note / Label")
+            .setView(input)
+            .setPositiveButton("Next", (dialog, which) -> {
+                String note = input.getText().toString().trim();
+                pendingLabel = note.isEmpty() ? "Alarm" : note;
+                promptRingtonePicker();
+            })
+            .setNegativeButton("Skip", (dialog, which) -> {
+                pendingLabel = "Alarm";
+                promptRingtonePicker();
+            })
+            .show();
+    }
+
+    private void promptRingtonePicker() {
+        Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
+        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+        startActivityForResult(intent, TONE_PICK_REQ);
+    }
+
+    private void promptWallpaperQuestion() {
+        new AlertDialog.Builder(this)
+            .setTitle("Custom Wallpaper")
+            .setMessage("Do you want to pick a custom photo wallpaper for when this alarm rings?")
+            .setPositiveButton("Pick Photo", (dialog, which) -> {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                startActivityForResult(intent, IMAGE_PICK_REQ);
+            })
+            .setNegativeButton("Default Dark", (dialog, which) -> finalizeAlarm())
+            .show();
     }
 
     @Override
     protected void onActivityResult(int reqCode, int resCode, Intent data) {
         if (reqCode == TONE_PICK_REQ && resCode == RESULT_OK) {
-            Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+            Uri uri = data != null ? data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI) : null;
             if (uri == null) {
                 uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             }
             Ringtone r = RingtoneManager.getRingtone(this, uri);
-            String toneName = (r != null) ? r.getTitle(this) : "Default Alarm";
+            pendingToneName = (r != null) ? r.getTitle(this) : "Alarm Tone";
+            pendingToneUri = uri.toString();
 
-            if (editingIndex >= 0 && editingIndex < alarms.size()) {
-                AlarmModel current = alarms.get(editingIndex);
-                AlarmScheduler.cancel(this, current.id);
-
-                current.hour = pendingHour;
-                current.minute = pendingMinute;
-                current.year = pendingYear;
-                current.month = pendingMonth;
-                current.day = pendingDay;
-                current.mode = pendingMode;
-                current.toneUri = uri.toString();
-                current.toneName = toneName;
-
-                AlarmScheduler.schedule(this, current);
-                Toast.makeText(this, "Alarm Updated", Toast.LENGTH_SHORT).show();
-            } else {
-                int id = (int) System.currentTimeMillis();
-                AlarmModel model = new AlarmModel(id, pendingHour, pendingMinute, pendingYear, pendingMonth, pendingDay, pendingMode, uri.toString(), toneName);
-                alarms.add(model);
-                AlarmScheduler.schedule(this, model);
-                Toast.makeText(this, "Alarm Scheduled", Toast.LENGTH_SHORT).show();
+            promptWallpaperQuestion();
+        } else if (reqCode == IMAGE_PICK_REQ && resCode == RESULT_OK && data != null) {
+            Uri selectedImg = data.getData();
+            if (selectedImg != null) {
+                try {
+                    getContentResolver().takePersistableUriPermission(
+                        selectedImg,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    );
+                } catch (Exception ignored) {}
+                pendingImageUri = selectedImg.toString();
             }
-
-            saveAlarms();
-            adapter.notifyDataSetChanged();
-            updateNotice();
+            finalizeAlarm();
         }
+    }
+
+    private void finalizeAlarm() {
+        if (editingIndex >= 0 && editingIndex < alarms.size()) {
+            AlarmModel current = alarms.get(editingIndex);
+            AlarmScheduler.cancel(this, current.id);
+
+            current.hour = pendingHour;
+            current.minute = pendingMinute;
+            current.year = pendingYear;
+            current.month = pendingMonth;
+            current.day = pendingDay;
+            current.mode = pendingMode;
+            current.toneUri = pendingToneUri;
+            current.toneName = pendingToneName;
+            current.label = pendingLabel;
+            if (!pendingImageUri.isEmpty()) current.imageUri = pendingImageUri;
+
+            AlarmScheduler.schedule(this, current);
+            Toast.makeText(this, "Alarm Updated", Toast.LENGTH_SHORT).show();
+        } else {
+            int id = (int) System.currentTimeMillis();
+            AlarmModel model = new AlarmModel(
+                id, pendingHour, pendingMinute, pendingYear, pendingMonth, pendingDay,
+                pendingMode, pendingToneUri, pendingToneName, pendingLabel, pendingImageUri
+            );
+            alarms.add(model);
+            AlarmScheduler.schedule(this, model);
+            Toast.makeText(this, "Alarm Scheduled", Toast.LENGTH_SHORT).show();
+        }
+
+        saveAlarms();
+        adapter.notifyDataSetChanged();
+        updateNotice();
     }
 
     private void updateNotice() {
@@ -178,6 +240,8 @@ public class MainActivity extends Activity {
                 obj.put("mode", a.mode);
                 obj.put("toneUri", a.toneUri);
                 obj.put("toneName", a.toneName);
+                obj.put("label", a.label);
+                obj.put("imageUri", a.imageUri);
                 arr.put(obj);
             }
             sp.edit().putString("list", arr.toString()).apply();
@@ -201,7 +265,9 @@ public class MainActivity extends Activity {
                     o.optInt("day", 0),
                     o.optString("mode", "DAILY"),
                     o.getString("toneUri"),
-                    o.getString("toneName")
+                    o.getString("toneName"),
+                    o.optString("label", "Alarm"),
+                    o.optString("imageUri", "")
                 ));
             }
         } catch (Exception ignored) {}
@@ -247,6 +313,7 @@ public class MainActivity extends Activity {
             TextView txtTime = v.findViewById(R.id.txtTime);
             TextView txtAmPm = v.findViewById(R.id.txtAmPm);
             TextView txtBadge = v.findViewById(R.id.txtScheduleBadge);
+            TextView txtLabel = v.findViewById(R.id.txtAlarmCardLabel);
             TextView txtTone = v.findViewById(R.id.txtToneTitle);
             Button btnDelete = v.findViewById(R.id.btnDelete);
             View card = v.findViewById(R.id.cardContent);
@@ -254,6 +321,7 @@ public class MainActivity extends Activity {
             int displayHour = a.hour % 12 == 0 ? 12 : a.hour % 12;
             txtTime.setText(String.format("%02d:%02d", displayHour, a.minute));
             txtAmPm.setText(a.hour >= 12 ? "PM" : "AM");
+            txtLabel.setText("Note: " + a.label);
             txtTone.setText("Tone: " + a.toneName);
 
             if ("DAILY".equals(a.mode)) {
@@ -271,6 +339,7 @@ public class MainActivity extends Activity {
 
             card.setOnClickListener(click -> {
                 editingIndex = pos;
+                pendingImageUri = a.imageUri;
                 promptScheduleMode();
             });
 

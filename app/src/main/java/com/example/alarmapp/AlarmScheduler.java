@@ -21,13 +21,11 @@ public class AlarmScheduler {
             cal.set(Calendar.MONTH, alarm.month);
             cal.set(Calendar.DAY_OF_MONTH, alarm.day);
         } else {
-            // "DAILY": If time already passed today, advance to tomorrow
             if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
                 cal.add(Calendar.DAY_OF_YEAR, 1);
             }
         }
 
-        // Safety: Do not set alarms in the past
         if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
             return;
         }
@@ -37,6 +35,8 @@ public class AlarmScheduler {
         intent.putExtra("TONE_URI", alarm.toneUri);
         intent.putExtra("MODE", alarm.mode);
         intent.putExtra("TIME_STR", String.format("%02d:%02d", alarm.hour, alarm.minute));
+        intent.putExtra("LABEL", alarm.label);
+        intent.putExtra("IMAGE_URI", alarm.imageUri);
 
         PendingIntent pi = PendingIntent.getBroadcast(
             context,

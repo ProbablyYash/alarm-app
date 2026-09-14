@@ -56,21 +56,31 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/txtAlarmCardLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note: Wake up"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#E2E8F0"
+            android:layout_marginTop="4dp" />
+
+        <TextView
             android:id="@+id/txtToneTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tone: Radar"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textColor="#94A3B8"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tap to edit schedule &amp; sound"
+            android:text="Tap to edit schedule, wallpaper &amp; sound"
             android:textSize="11sp"
             android:textColor="#475569"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="3dp" />
     </LinearLayout>
 
     <Button
