@@ -3,42 +3,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp">
-
-    <TimePicker
-        android:id="@+id/timePicker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:timePickerMode="spinner" />
-
-    <Button
-        android:id="@+id/btnPickTone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Select Ringtone / Sound" />
+    android:background="#0F172A"
+    android:padding="20dp">
 
     <TextView
-        android:id="@+id/txtSelectedTone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Default Tone Selected"
-        android:textSize="14sp" />
+        android:text="Alarms"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp" />
+
+    <ListView
+        android:id="@+id/alarmListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="#1E293B"
+        android:dividerHeight="10dp" />
 
     <Button
-        android:id="@+id/btnSetAlarm"
+        android:id="@+id/btnAddAlarm"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Set Alarm" />
-
-    <Button
-        android:id="@+id/btnCancelAlarm"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Cancel Alarm" />
-
+        android:layout_height="60dp"
+        android:text="+ Add New Alarm"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:background="#2563EB"
+        android:layout_marginTop="16dp" />
 </LinearLayout>

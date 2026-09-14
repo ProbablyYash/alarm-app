@@ -5,56 +5,82 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 
 public class AlarmService extends Service {
     private MediaPlayer mediaPlayer;
-    private static final String CHANNEL_ID = "ALARM_NOTIF_CHANNEL";
+    private Vibrator vibrator;
+    private PowerManager.WakeLock wakeLock;
+    private static final String CHANNEL_ID = "PERSISTENT_ALARM_CHANNEL";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent != null ? intent.getAction() : null;
-        if ("STOP_ALARM".equals(action)) {
+        String action = (intent != null) ? intent.getAction() : null;
+        if ("ACTION_DISMISS".equals(action)) {
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        createNotificationChannel();
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "alarmapp:AlarmWakeLock");
+        wakeLock.acquire(10 * 60 * 1000L); // 10 minutes max
 
-        Intent stopIntent = new Intent(this, AlarmService.class);
-        stopIntent.setAction("STOP_ALARM");
-        PendingIntent stopPendingIntent = PendingIntent.getService(this, 102, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        createChannel();
 
-        Notification.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = new Notification.Builder(this, CHANNEL_ID);
-        } else {
-            builder = new Notification.Builder(this);
+        Intent fullScreenIntent = new Intent(this, AlarmTriggerActivity.class);
+        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        if (intent != null && intent.getExtras() != null) {
+            fullScreenIntent.putExtras(intent.getExtras());
         }
 
-        Notification notification = builder
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(
+            this,
+            104,
+            fullScreenIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        Notification.Builder nb;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            nb = new Notification.Builder(this, CHANNEL_ID);
+        } else {
+            nb = new Notification.Builder(this);
+        }
+
+        Notification notification = nb
             .setContentTitle("Alarm Ringing!")
-            .setContentText("Tap to turn off")
+            .setContentText("Tap to stop")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "DISMISS", stopPendingIntent)
+            .setPriority(Notification.PRIORITY_MAX)
+            .setCategory(Notification.CATEGORY_ALARM)
+            .setFullScreenIntent(fullScreenPendingIntent, true)
             .setOngoing(true)
             .build();
 
-        startForeground(1, notification);
+        startForeground(999, notification);
 
-        String toneUriStr = intent != null ? intent.getStringExtra("TONE_URI") : null;
-        Uri soundUri = (toneUriStr != null) ? Uri.parse(toneUriStr) : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        startActivity(fullScreenIntent);
 
+        // Sound & Vibration
+        String uriStr = (intent != null) ? intent.getStringExtra("TONE_URI") : null;
+        playMedia(uriStr);
+        vibratePhone();
+
+        return START_STICKY;
+    }
+
+    private void playMedia(String uriStr) {
         try {
-            if (mediaPlayer != null) {
-                mediaPlayer.release();
-            }
+            Uri soundUri = (uriStr != null) ? Uri.parse(uriStr) : android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(this, soundUri);
             mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
@@ -64,24 +90,31 @@ public class AlarmService extends Service {
             mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
             mediaPlayer.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return START_STICKY;
+        } catch (Exception ignored) {}
     }
 
-    private void createNotificationChannel() {
+    private void vibratePhone() {
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        long[] pattern = {0, 800, 400, 800};
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
+            } else {
+                vibrator.vibrate(pattern, 0);
+            }
+        }
+    }
+
+    private void createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
+            NotificationChannel c = new NotificationChannel(
                 CHANNEL_ID,
-                "Alarm Alerts",
+                "Alarm Ring Channel",
                 NotificationManager.IMPORTANCE_HIGH
             );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+            c.setBypassDnd(true);
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) nm.createNotificationChannel(c);
         }
     }
 
@@ -90,13 +123,12 @@ public class AlarmService extends Service {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
-            mediaPlayer = null;
         }
+        if (vibrator != null) vibrator.cancel();
+        if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         super.onDestroy();
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    public IBinder onBind(Intent intent) { return null; }
 }
