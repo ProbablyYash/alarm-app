@@ -16,13 +16,26 @@ public class AlarmScheduler {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
+        if ("ONCE".equals(alarm.mode)) {
+            cal.set(Calendar.YEAR, alarm.year);
+            cal.set(Calendar.MONTH, alarm.month);
+            cal.set(Calendar.DAY_OF_MONTH, alarm.day);
+        } else {
+            // "DAILY": If time already passed today, advance to tomorrow
+            if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
+                cal.add(Calendar.DAY_OF_YEAR, 1);
+            }
+        }
+
+        // Safety: Do not set alarms in the past
         if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
-            cal.add(Calendar.DAY_OF_YEAR, 1);
+            return;
         }
 
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("ALARM_ID", alarm.id);
         intent.putExtra("TONE_URI", alarm.toneUri);
+        intent.putExtra("MODE", alarm.mode);
         intent.putExtra("TIME_STR", String.format("%02d:%02d", alarm.hour, alarm.minute));
 
         PendingIntent pi = PendingIntent.getBroadcast(
@@ -32,7 +45,6 @@ public class AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Shows the official alarm clock icon in notification status bar
         Intent showIntent = new Intent(context, MainActivity.class);
         PendingIntent showPi = PendingIntent.getActivity(
             context,
