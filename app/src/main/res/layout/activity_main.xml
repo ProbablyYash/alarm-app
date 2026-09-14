@@ -11,8 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:orientation="vertical"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="20dp">
+        android:layout_marginTop="16dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -30,6 +29,40 @@
             android:textSize="14sp"
             android:layout_marginTop="4dp"
             android:textColor="#64748B" />
+
+        <!-- Global Personalization Box -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/card_bg"
+            android:padding="12dp"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnSetGlobalWallpaper"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Set Wallpaper"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#334155" />
+
+            <View
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnSetGlobalTone"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:text="Set Tone"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#334155" />
+        </LinearLayout>
     </LinearLayout>
 
     <ListView
@@ -38,6 +71,7 @@
         android:layout_height="match_parent"
         android:layout_below="@id/header"
         android:layout_above="@+id/btnAddAlarm"
+        android:layout_marginTop="12dp"
         android:divider="@android:color/transparent"
         android:dividerHeight="14dp" />
 

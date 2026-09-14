@@ -30,8 +30,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                             AlarmModel m = new AlarmModel(
                                 id, o.getInt("hour"), o.getInt("minute"),
                                 o.optInt("year"), o.optInt("month"), o.optInt("day"),
-                                "DAILY", o.getString("toneUri"), o.getString("toneName"),
-                                o.optString("label", "Alarm"), o.optString("imageUri", "")
+                                "DAILY", o.optString("label", "Alarm")
                             );
                             AlarmScheduler.schedule(context, m);
                             updatedArr.put(o);

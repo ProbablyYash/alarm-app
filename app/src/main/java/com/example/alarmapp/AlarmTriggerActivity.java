@@ -1,10 +1,11 @@
 package com.example.alarmapp;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -13,19 +14,23 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.InputStream;
+import java.io.File;
 
 public class AlarmTriggerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Force Screen ON and dismiss keyguard
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
+            KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (km != null) km.requestDismissKeyguard(this, null);
         } else {
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             );
@@ -41,7 +46,6 @@ public class AlarmTriggerActivity extends Activity {
 
         String timeStr = getIntent().getStringExtra("TIME_STR");
         String labelStr = getIntent().getStringExtra("LABEL");
-        String imageUriStr = getIntent().getStringExtra("IMAGE_URI");
 
         if (timeStr != null) txtTime.setText(timeStr);
         if (labelStr != null && !labelStr.trim().isEmpty()) {
@@ -50,18 +54,15 @@ public class AlarmTriggerActivity extends Activity {
             txtLabel.setText("Alarm");
         }
 
-        // Render custom wallpaper if user selected one
-        if (imageUriStr != null && !imageUriStr.isEmpty()) {
-            try {
-                Uri imgUri = Uri.parse(imageUriStr);
-                InputStream stream = getContentResolver().openInputStream(imgUri);
-                Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                if (bitmap != null) {
-                    imgWallpaper.setImageBitmap(bitmap);
-                    imgWallpaper.setVisibility(View.VISIBLE);
-                    vOverlay.setVisibility(View.VISIBLE);
-                }
-            } catch (Exception ignored) {}
+        // Load cached global wallpaper from internal filesDir
+        File wallpaperFile = new File(getFilesDir(), "alarm_wallpaper.jpg");
+        if (wallpaperFile.exists()) {
+            Bitmap bmp = BitmapFactory.decodeFile(wallpaperFile.getAbsolutePath());
+            if (bmp != null) {
+                imgWallpaper.setImageBitmap(bmp);
+                imgWallpaper.setVisibility(View.VISIBLE);
+                vOverlay.setVisibility(View.VISIBLE);
+            }
         }
 
         btnDismiss.setOnClickListener(v -> {

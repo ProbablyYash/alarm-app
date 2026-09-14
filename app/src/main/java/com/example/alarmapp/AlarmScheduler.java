@@ -26,17 +26,13 @@ public class AlarmScheduler {
             }
         }
 
-        if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
-            return;
-        }
+        if (cal.getTimeInMillis() <= System.currentTimeMillis()) return;
 
         Intent intent = new Intent(context, AlarmReceiver.class);
         intent.putExtra("ALARM_ID", alarm.id);
-        intent.putExtra("TONE_URI", alarm.toneUri);
         intent.putExtra("MODE", alarm.mode);
         intent.putExtra("TIME_STR", String.format("%02d:%02d", alarm.hour, alarm.minute));
         intent.putExtra("LABEL", alarm.label);
-        intent.putExtra("IMAGE_URI", alarm.imageUri);
 
         PendingIntent pi = PendingIntent.getBroadcast(
             context,

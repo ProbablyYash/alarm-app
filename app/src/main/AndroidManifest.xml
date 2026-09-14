@@ -34,7 +34,9 @@
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
+            android:showWhenLocked="true"
             android:launchMode="singleInstance"
+            android:taskAffinity=""
             android:exported="false" />
 
         <receiver

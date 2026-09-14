@@ -7,8 +7,10 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
@@ -20,7 +22,7 @@ public class AlarmService extends Service {
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
     private PowerManager.WakeLock wakeLock;
-    private static final String CHANNEL_ID = "PERSISTENT_ALARM_CHANNEL";
+    private static final String CHANNEL_ID = "ALARM_POPUP_CHANNEL";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -31,13 +33,13 @@ public class AlarmService extends Service {
         }
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "alarmapp:AlarmWakeLock");
-        wakeLock.acquire(10 * 60 * 1000L); // 10 minutes max
+        wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "alarmapp:AlarmWakeLock");
+        wakeLock.acquire(10 * 60 * 1000L);
 
         createChannel();
 
         Intent fullScreenIntent = new Intent(this, AlarmTriggerActivity.class);
-        fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        fullScreenIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         if (intent != null && intent.getExtras() != null) {
             fullScreenIntent.putExtras(intent.getExtras());
         }
@@ -57,7 +59,7 @@ public class AlarmService extends Service {
         }
 
         Notification notification = nb
-            .setContentTitle("Alarm Ringing!")
+            .setContentTitle("AlArm Ringing!")
             .setContentText("Tap to stop")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setPriority(Notification.PRIORITY_MAX)
@@ -68,11 +70,15 @@ public class AlarmService extends Service {
 
         startForeground(999, notification);
 
-        startActivity(fullScreenIntent);
+        // Launch full-screen activity
+        try {
+            startActivity(fullScreenIntent);
+        } catch (Exception ignored) {}
 
-        // Sound & Vibration
-        String uriStr = (intent != null) ? intent.getStringExtra("TONE_URI") : null;
-        playMedia(uriStr);
+        // Play configured global tone
+        SharedPreferences sp = getSharedPreferences("alarms_db", MODE_PRIVATE);
+        String globalTone = sp.getString("global_tone_uri", null);
+        playMedia(globalTone);
         vibratePhone();
 
         return START_STICKY;
@@ -80,7 +86,7 @@ public class AlarmService extends Service {
 
     private void playMedia(String uriStr) {
         try {
-            Uri soundUri = (uriStr != null) ? Uri.parse(uriStr) : android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
+            Uri soundUri = (uriStr != null) ? Uri.parse(uriStr) : RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(this, soundUri);
             mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
