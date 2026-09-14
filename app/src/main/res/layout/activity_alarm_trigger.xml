@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@color/background"
+    android:background="#0A0F1D"
     android:padding="24dp">
 
     <TextView
@@ -14,13 +14,12 @@
         android:text="07:30"
         android:textSize="64sp"
         android:textStyle="bold"
-        android:textColor="@color/white" />
+        android:textColor="#FFFFFF" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ALARM RINGING"
-        android:letterSpacing="0.2"
         android:textColor="#38BDF8"
         android:textSize="16sp"
         android:layout_marginBottom="60dp" />
@@ -32,6 +31,6 @@
         android:text="STOP ALARM"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
-        android:background="@drawable/btn_danger" />
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#EF4444" />
 </LinearLayout>

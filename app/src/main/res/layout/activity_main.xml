@@ -20,7 +20,6 @@
             android:text="AlArm"
             android:textSize="36sp"
             android:textStyle="bold"
-            android:letterSpacing="0.05"
             android:textColor="#F8FAFC" />
 
         <TextView
@@ -40,9 +39,7 @@
         android:layout_below="@id/header"
         android:layout_above="@+id/btnAddAlarm"
         android:divider="@android:color/transparent"
-        android:dividerHeight="14dp"
-        android:clipToPadding="false"
-        android:scrollbars="none" />
+        android:dividerHeight="14dp" />
 
     <Button
         android:id="@+id/btnAddAlarm"
@@ -53,6 +50,6 @@
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:background="@drawable/fab_bg"
+        android:backgroundTint="#2563EB"
         android:layout_marginTop="12dp" />
 </RelativeLayout>
